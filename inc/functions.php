@@ -1,37 +1,60 @@
 <?php
+/**
+ * @param string $dir
+ * @return void
+ */
 // Функция для проверки и создания папки
-function checkAndCreateDirectory($dir) {
+function checkAndCreateDirectory(string $dir) {
     if (!is_dir($dir)) {
         mkdir($dir, 0777, true);
     }
 }
 
+/**
+ * @param array $file
+ * @return string|null
+ */
 // Функция для проверки ошибок загрузки файла
-function checkUploadErrors($file) {
+function checkUploadErrors(array $file) {
     if ($file['error'] !== UPLOAD_ERR_OK) {
         return UPLOAD_ERROR_MESSAGES[$file['error']];
     }
     return null;
 }
 
+/**
+ * @param array $file
+ * @param array $validTypes
+ * @return string|null
+ */
 // Функция для проверки типа файла
-function validateFileType($file, $validTypes) {
+function validateFileType(array $file, array $validTypes) {
     if (!in_array($file['type'], $validTypes)) {
         return 'Not available type';
     }
     return null;
 }
 
+/**
+ * @param array $file
+ * @param int $maxSize
+ * @return string|null
+ */
 // Функция для проверки размера файла
-function validateFileSize($file, $maxSize) {
+function validateFileSize(array $file, int $maxSize) {
     if ($file['size'] > $maxSize) {
         return 'Photo is too large';
     }
     return null;
 }
 
+/**
+ * @param array $file
+ * @param string $dir
+ * @return string|null
+ */
 // Функция для сохранения файла
-function saveUploadedFile($file, $dir) {
+function saveUploadedFile( array $file, string $dir) {
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
     $uniqueName = uniqid() . '.' . $extension;
     $fileName = $dir . DIRECTORY_SEPARATOR . $uniqueName;
@@ -41,6 +64,9 @@ function saveUploadedFile($file, $dir) {
     return null;
 }
 
+/**
+ * @return void
+ */
 // Основная функция обработки загрузки
 function handleFileUpload() {
     global $errors;
