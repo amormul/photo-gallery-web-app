@@ -19,6 +19,10 @@ const PHOTO_AVAILABLE_TYPES = [
 ];
 const PHOTO_DIR = 'images';
 
+if (!is_dir(PHOTO_DIR)) {
+    mkdir(PHOTO_DIR, 0777, true);
+}
+
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
