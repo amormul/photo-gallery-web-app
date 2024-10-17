@@ -19,7 +19,7 @@ handleFileUpload();
         <div class="upload-container">
             <h2>Upload Image</h2>
             <form action="index.php" method="POST" enctype="multipart/form-data">
-                <input type="file" class="custom-file-input" name="photo" accept="image/jpeg,image/png,image/webp,image/heic" required>
+                <input type="file" class="custom-file-input" name="photos[]" multiple  accept="image/jpeg,image/png,image/webp,image/heic" required>
                 <button type="submit" class="upload-btn">Завантажити</button>
             </form>
             <p>Виберіть зображення</p>

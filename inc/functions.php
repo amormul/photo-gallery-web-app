@@ -1,102 +1,118 @@
 <?php
 /**
+ * Checks if a directory exists and creates it if not.
  * @param string $dir
  * @return void
  */
-// Функция для проверки и создания папки
 function checkAndCreateDirectory(string $dir) {
     if (!is_dir($dir)) {
-        mkdir($dir, 0777, true);
+        mkdir($dir, 0777, true); // Create directory if it doesn't exist
     }
 }
 
 /**
+ * Checks for upload errors in the file array.
  * @param array $file
  * @return string|null
  */
-// Функция для проверки ошибок загрузки файла
 function checkUploadErrors(array $file) {
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        return UPLOAD_ERROR_MESSAGES[$file['error']];
+        return UPLOAD_ERROR_MESSAGES[$file['error']]; // Return error message if any
     }
     return null;
 }
 
 /**
+ * Validates the file type against allowed types.
  * @param array $file
  * @param array $validTypes
  * @return string|null
  */
-// Функция для проверки типа файла
 function validateFileType(array $file, array $validTypes) {
     if (!in_array($file['type'], $validTypes)) {
-        return 'Not available type';
+        return 'Not available type'; // Invalid file type
     }
     return null;
 }
 
 /**
+ * Validates the file size against the maximum allowed size.
  * @param array $file
  * @param int $maxSize
  * @return string|null
  */
-// Функция для проверки размера файла
 function validateFileSize(array $file, int $maxSize) {
     if ($file['size'] > $maxSize) {
-        return 'Photo is too large';
+        return 'Photo is too large'; // File exceeds size limit
     }
     return null;
 }
 
 /**
+ * Saves the uploaded file to the specified directory.
  * @param array $file
  * @param string $dir
  * @return string|null
  */
-// Функция для сохранения файла
-function saveUploadedFile( array $file, string $dir) {
+function saveUploadedFile(array $file, string $dir) {
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $uniqueName = uniqid() . '.' . $extension;
-    $fileName = $dir . DIRECTORY_SEPARATOR . $uniqueName;
+    $uniqueName = uniqid() . '.' . $extension; // Generate unique file name
+    $fileName = $dir . DIRECTORY_SEPARATOR . $uniqueName; // Full file path
     if (!move_uploaded_file($file['tmp_name'], $fileName)) {
-        return 'Photo was not uploaded';
+        return 'Photo was not uploaded'; // Upload failed
     }
     return null;
 }
 
 /**
- * @return void
+ * Handles the file upload process, including validation and saving files.
+ * @return array|null
  */
-// Основная функция обработки загрузки
 function handleFileUpload() {
-    global $errors;
-    checkAndCreateDirectory(PHOTO_DIR);
+    checkAndCreateDirectory(PHOTO_DIR); // Ensure photo directory exists
     $errors = [];
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if (empty($_FILES['photo'])) {
-            $errors[] = 'No POST data for file';
-        } else {
-            $photoFile = $_FILES['photo'];
-            $error = checkUploadErrors($photoFile);
-            if ($error) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['photos']['name'][0])) {
+        $photoFiles = $_FILES['photos'];
+
+        // Process each uploaded file
+        foreach ($photoFiles['name'] as $key => $value) {
+            $file = [
+                'name' => $photoFiles['name'][$key],
+                'type' => $photoFiles['type'][$key],
+                'tmp_name' => $photoFiles['tmp_name'][$key],
+                'error' => $photoFiles['error'][$key],
+                'size' => $photoFiles['size'][$key]
+            ];
+
+            // Check for upload errors
+            if ($error = checkUploadErrors($file)) {
                 $errors[] = $error;
-            } else {
-                $error = validateFileType($photoFile, PHOTO_AVAILABLE_TYPES);
-                if ($error) {
-                    $errors[] = $error;
-                }
-                $error = validateFileSize($photoFile, PHOTO_MAX_SIZE);
-                if ($error) {
-                    $errors[] = $error;
-                }
-                if (count($errors) === 0) {
-                    $error = saveUploadedFile($photoFile, PHOTO_DIR);
-                    if ($error) {
-                        $errors[] = $error;
-                    }
-                }
+                continue; // Skip to next file
+            }
+
+            // Validate file type
+            if ($error = validateFileType($file, PHOTO_AVAILABLE_TYPES)) {
+                $errors[] = $error;
+                continue; // Skip to next file
+            }
+
+            // Validate file size
+            if ($error = validateFileSize($file, PHOTO_MAX_SIZE)) {
+                $errors[] = $error;
+                continue; // Skip to next file
+            }
+
+            // Save file and check for errors
+            if ($error = saveUploadedFile($file, PHOTO_DIR)) {
+                $errors[] = $error;
             }
         }
+
+        // Redirect after processing to prevent re-upload
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit; // Stop script execution
     }
+
+    return $errors; // Return errors if any
 }
