@@ -18,5 +18,3 @@ const PHOTO_AVAILABLE_TYPES = [
     'image/heic'
 ];
 const PHOTO_DIR = 'images';
-
-$photos = glob(PHOTO_DIR . '/*.{jpg,jpeg,png,webp,heic, JPG, JPEG, PNG, WEBP, HEIC}', GLOB_BRACE);
